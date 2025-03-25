@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.env
+venv/
+env/
+newenv/
+
+# FastAPI / Uvicorn
+*.log
+*.pid
+
+# IDE
+.vscode/
+.idea/
+
+# Static files (if not needed)
+static/
