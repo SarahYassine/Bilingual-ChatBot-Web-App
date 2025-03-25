@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bilingual Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .chat-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .chat-box {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 18px;
+            max-width: 70%;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        .bot-message {
+            background-color: #e9ecef;
+            color: black;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+        input, select, button {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        input {
+            flex-grow: 1;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .language-selector {
+            margin-bottom: 15px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Bilingual Chatbot</h1>
+        
+        <div class="language-selector">
+            <label for="language">Select Language:</label>
+            <select id="language">
+                <option value="1">English</option>
+                <option value="2">العربية (Arabic)</option>
+            </select>
+        </div>
+        
+        <div class="chat-box" id="chatBox"></div>
+        
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Type your message here...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById('chatBox');
+        const userInput = document.getElementById('userInput');
+        const languageSelect = document.getElementById('language');
+        
+        // Add initial bot message based on selected language
+        updateGreeting();
+        
+        // Update greeting when language changes
+        languageSelect.addEventListener('change', updateGreeting);
+        
+        function updateGreeting() {
+            const language = languageSelect.value;
+            let greeting = '';
+            
+            if (language === '1') {
+                greeting = "Hello! This is Vivy. I can answer your queries about the Lebanese Constitution. Type 'bye' to exit.";
+            } else {
+                greeting = "مرحبا! أنا المتحدث الآلي فيفي. أستطيع أن أجيب على أسئلتك المتعلقة بالدستور اللبناني. قم بكتابة 'شكرا' لإنهاء المحادثة.";
+            }
+            
+            chatBox.innerHTML = `<div class="message bot-message">${greeting}</div>`;
+        }
+        
+        function sendMessage() {
+            const message = userInput.value.trim();
+            const language = languageSelect.value;
+            
+            if (message === '') return;
+            
+            // Add user message to chat
+            addMessage(message, 'user-message', 'You');
+            
+            // Clear input
+            userInput.value = '';
+            
+            // Send to server
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `language=${language}&message=${encodeURIComponent(message)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                addMessage(data.response, 'bot-message', 'Vivy');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                addMessage("Sorry, I'm having trouble responding right now.", 'bot-message', 'Vivy');
+            });
+        }
+        
+        function addMessage(text, cssClass, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', cssClass);
+            messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+        
+        // Allow sending message with Enter key
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
